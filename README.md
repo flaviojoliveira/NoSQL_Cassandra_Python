@@ -1,44 +1,47 @@
-# NoSQL_Cassandra_Python
-Projeto executado na disciplina de POO II - Talis
-frasco-cassandra
-Python Flask Cassandra Simple Shop CRUD
+Docker_Cassandra_FastAPI
 
-Esta é uma coleção de aplicativo Cassandra Shop simples e ilustrativo. O objetivo desta coleção é ajudar os novos usuários do Cassandra a entender melhor o Cassandra e apresentar casos de uso ilustrativos.
-Começando
+Este projeto consiste em criar um cluster Cassandra composto por 2 núcleos, em seguida criar uma API para testar a acessibilidade e o tempo de resposta da base de dados. Os dados representam os resultados da inspeção para restaurantes na cidade de Nova York.
 
-Se você não tiver acesso a um cluster do Cassandra, poderá começar instalando com o HomeBrew para Mac.
-Começando
+A API é composta por 4 URLs que permitem o acesso a:
 
-Se você já tiver acesso a um cluster do Cassandra, poderá começar a executar este aplicativo de exemplo imediatamente. Tudo o que você precisa fazer é definir uma variável de ambiente em seu cliente indicando onde seu cluster está localizado:
+    para a informação de um restaurante a partir do seu id
+    à lista de nomes de restaurantes do tipo de cozinha
+    o número de inspeção de um restaurante de seu ID de restaurante
+    os nomes dos 10 melhores restaurantes de uma determinada categoria
 
-   $ export BACKEND_STORAGE_IP='mycluster_ip'
+Criando o contêiner:
 
-No entanto, se você não tiver acesso a um cluster do Cassandra, poderá começar instalando o Ferry . Ferry é uma ferramenta de código aberto que ajuda os desenvolvedores a provisionar clusters virtuais em uma máquina local. O Ferry suporta Cassandra (e outras ferramentas de "big data") e não requer que você realmente saiba como configurar o Cassandra para começar.
+Para começar, crie o diretório pai e execute no terminal a partir deste diretório:
 
-Supondo que você esteja usando o Ferry, você deve executar todos esses comandos em um cliente Cassandra. A primeira coisa a fazer é instalar todos os pacotes de pré-requisitos. Eles podem ser encontrados em requirements.txt. Aqui está uma maneira simples de fazer isso a partir da linha de comando usando pip.
+    git clone https://github.com/PaulSabia/Docker_Cassandra_FastAPI.git
 
-   $ pip install -r requirements.txt
+Em seguida, execute o seguinte comando:
 
-Depois, você desejará configurar o keyspace do Cassandra para nosso aplicativo.
+    docker-compose up --build
 
-   $ cqlsh -f createtable.cql
+Preenchendo a base:
 
-Depois de criar a tabela, você poderá iniciar o servidor web digitando:
+    docker cp db-schema/restaurants.csv cassandra-c01:/restaurants.csv
 
-   $ python app.py runserver
+    docker cp db-schema/restaurants_inspections.csv cassandra-c01:/restaurants_inspections.csv
 
-Depois, insira alguns dados no Cassandra digitando:
+Em seguida, insira o contêiner para poder executar nossas consultas de criação de tabela CQL:
 
-   $ python rest-client.py post
+    docker exec -it cassandra-c01 cqlsh
 
-Então, vamos ver quais dados foram inseridos.
+Todas as solicitações de criação são agrupadas no arquivo init.cql
+Última verificação:
 
-   $ python rest-client.py fetch  
+Quando os dois containers Cassandra são criados, um ip específico é atribuído a eles. Aqui : 172.18.0.2e 172.18.0.3.
 
-Além disso, vamos atualizar quais dados foram inseridos.
+Para obter o ip (quando os containers estão rodando):
 
-   $ python rest-client.py update  
+    docker exec -it cassandra-c01 nodetool status
 
-Por fim, vamos excluir os dados que foram inseridos.
+No arquivo api.py, substitua os IPs na linha 10:
 
-   $ python rest-client.py delete  
+    cls.cluster = cluster.Cluster(['172.18.0.2', '172.18.0.3'], port=9042)
+
+Teste de API:
+
+Reinicie os contêineres: docker-compose up --buildentão vá para o seguinte endereço: http://localhost:8004/docs 
